@@ -1,0 +1,96 @@
+name: Build using vcpkg
+
+on:
+  push:
+    branches: [ unused ]
+  pull_request:
+    branches: [ unused ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-22.04, windows-2022 ]
+        linking: [ dynamic, static ]
+        exclude:
+          # Windows always worked without a problem with both dynamic and static linking, no need to test.
+          - os: windows-2022
+            linking: static
+
+    runs-on: ${{ matrix.os }}
+    name: "${{ github.workflow }}: ${{ matrix.os }} (${{ matrix.linking }})"
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/third_party/vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/third_party/vcpkg/bincache
+
+    steps:
+      - name: Set up vcpkg environment variables
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            echo "VCPKG_COPY_TRIPLET=x64-linux" >> $GITHUB_ENV
+            echo "VCPKG_DEFAULT_TRIPLET=x64-linux-${{matrix.linking}}-release-only" >> $GITHUB_ENV
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            echo "VCPKG_COPY_TRIPLET=x64-windows" >> $GITHUB_ENV
+            echo "VCPKG_DEFAULT_TRIPLET=x64-windows-${{matrix.linking}}-release-only" >> $GITHUB_ENV
+          elif [ "$RUNNER_OS" == "macOS" ] && [ "$(uname -m)" = "x86_64" ]; then
+            echo "VCPKG_COPY_TRIPLET=x64-osx" >> $GITHUB_ENV
+            echo "VCPKG_DEFAULT_TRIPLET=x64-osx-${{matrix.linking}}-release-only" >> $GITHUB_ENV
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            echo "VCPKG_COPY_TRIPLET=arm64-osx" >> $GITHUB_ENV
+            echo "VCPKG_DEFAULT_TRIPLET=arm64-osx-${{matrix.linking}}-release-only" >> $GITHUB_ENV
+          else
+            echo "$RUNNER_OS is not supported."
+          exit 1
+          fi
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 4.0.0
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+          vcpkgGitCommitId: '9b75e789ece3f942159b8500584e35aafe3979ff'
+          vcpkgDirectory: ${{env.VCPKG_ROOT}}
+
+      - name: Create custom vcpkg triplet
+        shell: bash
+        run: |
+          cp "${{env.VCPKG_ROOT}}/triplets/${{env.VCPKG_COPY_TRIPLET}}.cmake" "${{env.VCPKG_ROOT}}/triplets/community/${{env.VCPKG_DEFAULT_TRIPLET}}.cmake"
+          echo "set(VCPKG_BUILD_TYPE release)" >> "${{env.VCPKG_ROOT}}/triplets/community/${{env.VCPKG_DEFAULT_TRIPLET}}.cmake"
+          sed -i -e 's/.*VCPKG_LIBRARY_LINKAGE.*/set(VCPKG_LIBRARY_LINKAGE ${{matrix.linking}})/g' "${{env.VCPKG_ROOT}}/triplets/community/${{env.VCPKG_DEFAULT_TRIPLET}}.cmake"
+          if [ "$RUNNER_OS" == "Linux" ] && [ "${{matrix.linking}}" == "dynamic" ]; then
+           echo "set(VCPKG_FIXUP_ELF_RPATH ON)" >> "${{env.VCPKG_ROOT}}/triplets/community/${{env.VCPKG_DEFAULT_TRIPLET}}.cmake"
+          fi
+
+      - name: Build (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ] || [ "$RUNNER_OS" == "macOS" ]; then
+            ./build.sh --vcpkg --do-not-run --vcpkg-triplet ${{env.VCPKG_DEFAULT_TRIPLET}}
+          #elif [ "$RUNNER_OS" == "Windows" ]; then
+          #  ./build-msvc.bat --do-not-run --vcpkg-triplet ${{env.VCPKG_DEFAULT_TRIPLET}}
+          fi
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          for /D %%F in (C:\VulkanSDK\*) do (
+            set VULKAN_SDK=%%F
+            goto vulkan_finished
+          )
+          :vulkan_finished
+          ./build-msvc.bat --do-not-run --vcpkg-triplet ${{env.VCPKG_DEFAULT_TRIPLET}}
