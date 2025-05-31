@@ -49,6 +49,7 @@ if(VCPKG_TOOLCHAIN)
     find_package(tinyxml2 CONFIG REQUIRED)
 endif()
 
+find_package(Vulkan QUIET)
 find_package(sgl QUIET)
 if(NOT sgl_FOUND)
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};third_party/sgl/install/lib/cmake/sgl)

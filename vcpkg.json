@@ -17,9 +17,7 @@
             "default-features": true,
             "features": [ "bzip2", "lz4", "lzma", "zstd" ]
         },
-        "vulkan-headers",
         "shaderc",
-        "opencl",
         "glew",
         "glm",
         "tbb"
