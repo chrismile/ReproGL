@@ -64,7 +64,7 @@ jobs:
           echo "VCPKG_COPY_TRIPLET=${VCPKG_COPY_TRIPLET}" >> $GITHUB_ENV
           export VCPKG_DEFAULT_TRIPLET="${VCPKG_COPY_TRIPLET}-${{matrix.linking}}-release-only"
           echo "VCPKG_DEFAULT_TRIPLET=${VCPKG_DEFAULT_TRIPLET}" >> $GITHUB_ENV
-          export VCPKG_CACHE_KEY_PART="${VCPKG_DEFAULT_TRIPLET}-${VCPKG_COMMIT_ID}-${{ github.event.repository.name }}"
+          export VCPKG_CACHE_KEY_PART="${{ matrix.os }}-${VCPKG_DEFAULT_TRIPLET}-${VCPKG_COMMIT_ID}-${{ github.event.repository.name }}"
           echo "VCPKG_CACHE_KEY=vcpkg-${VCPKG_CACHE_KEY_PART}-" >> $GITHUB_ENV
           echo "VCPKG_CACHE_KEY_FULL=vcpkg-${VCPKG_CACHE_KEY_PART}-${{ hashFiles('vcpkg.json') }}" >> $GITHUB_ENV
 
