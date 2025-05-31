@@ -636,6 +636,7 @@ if $glibcxx_debug; then
     params_sgl+=(-DUSE_GLIBCXX_DEBUG=On)
     params+=(-DUSE_GLIBCXX_DEBUG=On)
 fi
+params_sgl+=(-DSUPPORT_VULKAN=OFF)
 
 cmake_version=$(cmake --version | head -n 1 | awk '{print $NF}')
 cmake_version_major=$(echo $cmake_version | cut -d. -f1)
