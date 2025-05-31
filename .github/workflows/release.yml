@@ -154,7 +154,7 @@ jobs:
           zip -r ../${{ env.artifact_name }}.zip .
           popd >/dev/null
 
-      # Needs "Read and write permission" under "Workflow permissions" on https://github.com/chrismile/TestInteropVKGL/settings/actions.
+      # Needs "Read and write permission" under "Workflow permissions" on https://github.com/chrismile/ReproGL/settings/actions.
       - name: Create release
         uses: softprops/action-gh-release@v2
         #if: startsWith(github.ref, 'refs/tags/')

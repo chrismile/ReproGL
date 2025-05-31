@@ -26,18 +26,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cstring>
 #include <Utils/AppSettings.hpp>
 #include <Utils/File/FileUtils.hpp>
-#include <Utils/File/Logfile.hpp>
-#include <Graphics/Vulkan/Utils/Device.hpp>
-#include <Graphics/Vulkan/Utils/Swapchain.hpp>
-
-#include <Graphics/OpenGL/Context/OffscreenContext.hpp>
-#ifdef _WIN32
-#include <Graphics/OpenGL/Context/DeviceSelectionWGL.hpp>
-#include <Graphics/OpenGL/Context/DeviceSelectionWGLGlobals.hpp>
-#endif
 
 #include "MainApp.hpp"
 
@@ -59,7 +49,7 @@ int main(int argc, char *argv[]) {
     sgl::AppSettings::get()->getSettings().addKeyValue("window-savePosition", true);
     sgl::AppSettings::get()->setLoadGUI(nullptr, true, false);
 
-    auto* window = sgl::AppSettings::get()->createWindow();
+    sgl::AppSettings::get()->createWindow();
     sgl::AppSettings::get()->initializeSubsystems();
 
     auto app = new MainApp();
