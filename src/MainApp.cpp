@@ -50,7 +50,7 @@ MainApp::MainApp() {
 }
 
 MainApp::~MainApp() {
-    if (!appHasHung) {
+    if (useHangCheckMode && !appHasHung) {
         sgl::dialog::openMessageBoxBlocking(
             "Everything Fine", "Your GPU driver is running the application normally.",
             sgl::dialog::Choice::OK, sgl::dialog::Icon::INFO);
@@ -65,12 +65,12 @@ void MainApp::render() {
     SciVisApp::preRender();
     SciVisApp::prepareReRender();
 
-    auto timeNow = std::chrono::high_resolution_clock::now();
     if (isFirstFrame) {
         timeAppStart = std::chrono::high_resolution_clock::now();
         timeLastFrame = timeAppStart;
         isFirstFrame = false;
-    } else {
+    } else if (useHangCheckMode) {
+        auto timeNow = std::chrono::high_resolution_clock::now();
         auto timeElapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timeLastFrame);
         if (timeElapsedMs.count() > 1000) {
             std::string dialogText =
