@@ -151,7 +151,6 @@ jobs:
         run: |
           proj_name=${{ github.event.repository.name }}
           cp -r Data Shipping/Data
-          mkdir Shipping/Data/LineDataSets
           mv Shipping ${{ env.artifact_name }}
 
       # vimtor removes the '+x' flag (https://github.com/vimtor/action-zip/issues/21) on Linux/macOS.
