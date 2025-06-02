@@ -73,14 +73,17 @@ void MainApp::render() {
     } else {
         auto timeElapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timeLastFrame);
         if (timeElapsedMs.count() > 1000) {
+            std::string dialogText =
+                    std::string() + "Your GPU driver is affected by the app hang ("
+                    + std::to_string(timeElapsedMs.count()) + "ms).";
             sgl::dialog::openMessageBoxBlocking(
-                "App Hang Detected", "Your GPU driver is affected by the app hang.",
-                sgl::dialog::Choice::OK, sgl::dialog::Icon::ERROR);
+                    "App Hang Detected", dialogText, sgl::dialog::Choice::OK, sgl::dialog::Icon::ERROR);
             appHasHung = true;
             quit();
         }
         timeLastFrame = timeNow;
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timeAppStart).count() > MAX_NUM_MS_RUN) {
+        auto timeElapsedTotal = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timeAppStart).count();
+        if (uint64_t(timeElapsedTotal) > MAX_NUM_MS_RUN) {
             quit();
         }
     }
