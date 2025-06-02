@@ -47,12 +47,13 @@ public:
 private:
     void reloadDataSet() override {}
 
+    using time_point_t = std::invoke_result<decltype(std::chrono::high_resolution_clock::now)>::type;
     bool useHangCheckMode = true;
     bool isFirstFrame = true;
     bool appHasHung = false;
     const uint64_t MAX_NUM_MS_RUN = 20000;
-    std::chrono::system_clock::time_point timeLastFrame;
-    std::chrono::system_clock::time_point timeAppStart;
+    time_point_t timeLastFrame;
+    time_point_t timeAppStart;
     sgl::ShaderProgramPtr testShaderProgram;
     sgl::GeometryBufferPtr testBuffer;
 };
