@@ -40,6 +40,16 @@ int main(int argc, char *argv[]) {
 #endif
     sgl::AppSettings::get()->initializeDataDirectory();
 
+    bool useHangCheckMode = true;
+    for (int i = 1; i < argc; i++) {
+        std::string command = argv[i];
+        if (command == "--nocheck") {
+            useHangCheckMode = false;
+        } else {
+            throw std::runtime_error("Unknown command: " + command);
+        }
+    }
+
     std::string settingsFile = sgl::FileUtils::get()->getConfigDirectory() + "settings.txt";
     sgl::AppSettings::get()->loadSettings(settingsFile.c_str());
     sgl::AppSettings::get()->getSettings().addKeyValue("window-multisamples", 0);
@@ -53,6 +63,7 @@ int main(int argc, char *argv[]) {
     sgl::AppSettings::get()->initializeSubsystems();
 
     auto app = new MainApp();
+    app->setUseHangCheckMode(useHangCheckMode);
     app->run();
     delete app;
 

@@ -29,6 +29,8 @@
 #ifndef MAINAPP_HPP
 #define MAINAPP_HPP
 
+#include <chrono>
+
 #include <Utils/SciVis/SciVisApp.hpp>
 #include <Graphics/OpenGL/Shader.hpp>
 
@@ -36,6 +38,7 @@ class MainApp : public sgl::SciVisApp {
 public:
     MainApp();
     ~MainApp() override;
+    void setUseHangCheckMode(bool _useHangCheckMode);
     void render() override;
     void renderGui() override;
     void update(float dt) override;
@@ -44,6 +47,12 @@ public:
 private:
     void reloadDataSet() override {}
 
+    bool useHangCheckMode = true;
+    bool isFirstFrame = true;
+    bool appHasHung = false;
+    const uint64_t MAX_NUM_MS_RUN = 20000;
+    std::chrono::system_clock::time_point timeLastFrame;
+    std::chrono::system_clock::time_point timeAppStart;
     sgl::ShaderProgramPtr testShaderProgram;
     sgl::GeometryBufferPtr testBuffer;
 };

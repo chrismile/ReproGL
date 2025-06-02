@@ -26,6 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <Utils/Dialog.hpp>
 #include <Graphics/Renderer.hpp>
 #include <Graphics/Shader/ShaderManager.hpp>
 
@@ -49,12 +50,40 @@ MainApp::MainApp() {
 }
 
 MainApp::~MainApp() {
+    if (!appHasHung) {
+        sgl::dialog::openMessageBoxBlocking(
+            "Everything Fine", "Your GPU driver is running the application normally.",
+            sgl::dialog::Choice::OK, sgl::dialog::Icon::INFO);
+    }
+}
+
+void MainApp::setUseHangCheckMode(bool _useHangCheckMode) {
+    useHangCheckMode = _useHangCheckMode;
 }
 
 void MainApp::render() {
     SciVisApp::preRender();
     SciVisApp::prepareReRender();
 
+    auto timeNow = std::chrono::high_resolution_clock::now();
+    if (isFirstFrame) {
+        timeAppStart = std::chrono::high_resolution_clock::now();
+        timeLastFrame = timeAppStart;
+        isFirstFrame = false;
+    } else {
+        auto timeElapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timeLastFrame);
+        if (timeElapsedMs.count() > 1000) {
+            sgl::dialog::openMessageBoxBlocking(
+                "App Hang Detected", "Your GPU driver is affected by the app hang.",
+                sgl::dialog::Choice::OK, sgl::dialog::Icon::ERROR);
+            appHasHung = true;
+            quit();
+        }
+        timeLastFrame = timeNow;
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timeAppStart).count() > MAX_NUM_MS_RUN) {
+            quit();
+        }
+    }
     sgl::ShaderManager->bindShaderStorageBuffer(0, testBuffer);
     testShaderProgram->dispatchCompute(1);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
